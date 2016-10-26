@@ -1,0 +1,17 @@
+postgres:
+  image: postgres:9.4.4 # Heroku PostgreSQL Version
+  ports:
+    - "5432:5432" # Bind host port 5432 to PostgreSQL port 5432
+  volumes:
+    - .:/app
+    - ./db/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+  environment:
+    LC_ALL: C.UTF-8
+    POSTGRES_PASSWORD: 3x4mpl34pp
+
+elasticsearch:
+  image: elasticsearch:1.7.1
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+
