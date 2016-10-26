@@ -1,0 +1,24 @@
+# Ignore Play! working directory #
+bin/
+/db
+/lib/
+/logs/
+/modules
+/project/target
+/target
+/dist/
+tmp/
+test-result
+server.pid
+*.eml
+
+# Scala
+*.class
+*.cache
+
+# IDEs
+.idea
+.eclipse
+.ensime_cache/
+.ensime
+
