@@ -3,6 +3,7 @@ package controllers
 import akka.actor.ActorSystem
 import javax.inject._
 
+import model.Hadith
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
 
@@ -40,5 +41,10 @@ class SearchController @Inject() (actorSystem: ActorSystem)(implicit exec: Execu
     Ok(JsArray(Seq.fill(limit)(json)))
   }
 
+  def add(index: String) = Action { implicit request =>
+     request.body.asJson.fold(BadRequest("Invalid payload format"))(json =>
+      json.validate[Hadith].fold(errors => BadRequest(s"Invalid Json, $errors"), hadith => Ok("Success"))
+     )
+  }
 
 }
