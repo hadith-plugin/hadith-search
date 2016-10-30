@@ -18,7 +18,8 @@ class AppLoader extends ApplicationLoader {
 class Components(context: Context) extends BuiltInComponentsFromContext(context) {
   val ws = AhcWSClient()
   val conf = ConfigFactory.load()
-  lazy val elasticsearch = new ElasticSearchWSC(ws, conf.getConfig("elasticsearch"))
+  val elasticsearch = new ElasticSearchWSC(ws, conf.getConfig("elasticsearch"))
+  elasticsearch.buildIndex()
 
   lazy val router = new Routes(
     httpErrorHandler,
