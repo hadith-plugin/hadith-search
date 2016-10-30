@@ -36,7 +36,7 @@ object Hadith {
   implicit val fmt = Json.format[Hadith]
 }
 
-case class SearchResult(_index: String, _type: String, _id: String, _score: Int, _source: Hadith)
+case class SearchResult(_index: String, _type: String, _id: String, _score: Double, _source: Hadith)
 
 object SearchResult {
   implicit val fmt = Json.format[SearchResult]

@@ -2,7 +2,7 @@ package services
 
 import com.typesafe.config.Config
 import model.{ElasticsearchResponse, Hadith, HadithResult}
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,7 +23,7 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
   }
 
   override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] =
-    ws.url(s"$url/$index/hadith/_search").get().map(_.json.validate[ElasticsearchResponse] match {
+    ws.url(s"$url/$index/hadith/_search").post(makeQuery(query)).map(_.json.validate[ElasticsearchResponse] match {
       case JsSuccess(result, _) =>
         result.hits.hits.map { hit =>
           HadithResult(index, hit._score, hit._source)
@@ -34,4 +34,16 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
     })
 
   override def buildIndex(): Future[Boolean] = Future.successful(true)
+
+  private[this] def makeQuery(query: String): JsObject = Json.obj(
+    "query" -> Json.obj(
+      "bool" -> Json.obj(
+        "must" -> Json.obj(
+          "terms" -> Json.obj(
+            "content" -> query.split(" ")
+          )
+        )
+      )
+    )
+  )
 }
