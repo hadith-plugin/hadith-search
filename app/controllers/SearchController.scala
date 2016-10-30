@@ -6,12 +6,13 @@ import javax.inject._
 import model.Hadith
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
+import services.Elasticsearch
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 @Singleton
-class SearchController @Inject() (actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends Controller {
+class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(implicit exec: ExecutionContext) extends Controller {
 
   def getQueryAsInt[A](param: String)(implicit request: Request[A]): Option[Int] =
     Try(request.getQueryString(param).map(Integer.parseInt)).toOption.getOrElse(None)
@@ -41,10 +42,13 @@ class SearchController @Inject() (actorSystem: ActorSystem)(implicit exec: Execu
     Ok(JsArray(Seq.fill(limit)(json)))
   }
 
-  def add(index: String) = Action { implicit request =>
-     request.body.asJson.fold(BadRequest("Invalid payload format"))(json =>
-      json.validate[Hadith].fold(errors => BadRequest(s"Invalid Json, $errors"), hadith => Ok("Success"))
+  def add(index: String) = Action.async { implicit request =>
+     request.body.asJson.fold(Future.successful(BadRequest("Invalid payload format")))(json =>
+      json.validate[Hadith].fold(
+        errors =>
+          Future.successful(BadRequest(s"Invalid Json, $errors")),
+        hadith =>
+          elasticsearch.indexHadith(index, hadith).map(result => Ok("Success")))
      )
   }
-
 }
