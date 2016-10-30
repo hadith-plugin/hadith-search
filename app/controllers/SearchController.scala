@@ -17,8 +17,8 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
   def getQueryAsInt[A](param: String)(implicit request: Request[A]): Option[Int] =
     Try(request.getQueryString(param).map(Integer.parseInt)).toOption.getOrElse(None)
 
-  def search = Action { implicit request =>
-    val query = request.getQueryString("q")
+  def search = Action.async { implicit request =>
+    val query = request.getQueryString("q").getOrElse("")
     val limit = Math.abs(getQueryAsInt("limit").getOrElse(10))
     val offset = Math.abs(getQueryAsInt("offset").getOrElse(0))
     val json = Json.parse(
@@ -39,7 +39,8 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
         |}
       """.stripMargin)
 
-    Ok(JsArray(Seq.fill(limit)(json)))
+//    Ok(JsArray(Seq.fill(limit)(json)))
+    elasticsearch.search("bokhari", query, offset, limit).map(result => Ok(Json.toJson(result)))
   }
 
   def add(index: String) = Action.async { implicit request =>
