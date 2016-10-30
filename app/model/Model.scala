@@ -74,3 +74,10 @@ object HadithResult {
       ShortContent(hadith.book.content, hadith.book.noTashkeelContent),
       ShortContent(hadith.chapter.content, hadith.chapter.noTashkeelContent))
 }
+
+case class SearchRequest(query: Option[String], offset: Option[Int], limit: Option[Int])
+
+object SearchRequest {
+  implicit val fmt = Json.format[SearchRequest]
+  val defaultInstance = SearchRequest(query = Some(""), offset = Some(0), limit = Some(10))
+}

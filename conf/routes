@@ -6,6 +6,7 @@
 GET     /                           controllers.HomeController.index
 
 GET     /search                     controllers.SearchController.search
+POST    /search                     controllers.SearchController.search
 
 POST    /add/:index                 controllers.SearchController.add(index)
 
