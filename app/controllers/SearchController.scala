@@ -43,11 +43,11 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
      request.body.asJson.fold(Future.successful(BadRequest("Invalid payload format")))(json =>
       json.validate[Hadith].fold(
         invalid = { errors =>
-          log.debug(s"[add] validation faild; errors: $errors")
+          log.info(s"[add] validation faild; errors: $errors")
           Future.successful(BadRequest(s"Invalid Json, $errors"))
         },
         valid = { hadith =>
-          log.debug(s"[add] validation passed")
+          log.info(s"[add] validation passed")
           elasticsearch.indexHadith(index, hadith).map(result => Ok("Success"))
         })
      )
