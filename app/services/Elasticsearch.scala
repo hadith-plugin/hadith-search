@@ -22,6 +22,8 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
   val url = conf.getString("url")
   val user = conf.getString("user")
   val password = conf.getString("password")
+  println(s"Elasticsearch URL: $url")
+  println(s"user: $user, password: $password")
 
   override def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[WSResponse] = {
     ws.url(s"$url/$index/hadith").withAuth(user, password, WSAuthScheme.BASIC).post(Json.toJson(hadith))
