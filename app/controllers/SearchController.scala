@@ -50,7 +50,7 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
           log.info(s"[add] validation passed")
           elasticsearch.indexHadith(index, hadith).map(result => result.status match {
             case 200 | 201 =>
-              Ok("Success")
+              Created("Success")
             case status =>
               InternalServerError(s"Elasticsearch response: $result")
           })
