@@ -4,7 +4,7 @@ import com.typesafe.config.Config
 import model.{ElasticsearchResponse, Hadith, HadithResult}
 import play.api.Logger
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,11 +17,14 @@ trait Elasticsearch {
 }
 
 class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
-  val url = conf.getString("url")
   val log = Logger(this.getClass)
 
+  val url = conf.getString("url")
+  val user = conf.getString("user")
+  val password = conf.getString("password")
+
   override def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[WSResponse] = {
-    ws.url(s"$url/$index/hadith").post(Json.toJson(hadith))
+    ws.url(s"$url/$index/hadith").withAuth(user, password, WSAuthScheme.BASIC).post(Json.toJson(hadith))
   }
 
   override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] =
