@@ -30,13 +30,16 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
   }
 
   override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] =
-    ws.url(s"$url/$index/hadith/_search").post(makeQuery(query)).map(_.json.validate[ElasticsearchResponse] match {
+    ws.url(s"$url/$index/hadith/_search").withAuth(user, password, WSAuthScheme.BASIC).post(makeQuery(query)).map(res => res.json.validate[ElasticsearchResponse] match {
       case JsSuccess(result, _) =>
         result.hits.hits.map { hit =>
           HadithResult(index, hit._score, hit._source)
         }
       case JsError(errors) =>
+        println("--------------------------------")
+        println(res)
         println(errors)
+        println("--------------------------------")
         Seq.empty
     })
 
