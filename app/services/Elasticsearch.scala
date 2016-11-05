@@ -4,12 +4,12 @@ import com.typesafe.config.Config
 import model.{ElasticsearchResponse, Hadith, HadithResult}
 import play.api.Logger
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
-import play.api.libs.ws.WSClient
+import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait Elasticsearch {
-  def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[Boolean]
+  def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[WSResponse]
 
   def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]]
 
@@ -20,15 +20,8 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
   val url = conf.getString("url")
   val log = Logger(this.getClass)
 
-  override def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[Boolean] = {
-    ws.url(s"$url/$index/hadith").post(Json.toJson(hadith)).map(response => response.status match {
-      case 200 | 201 =>
-        log.info("Created")
-        true
-      case other =>
-        log.info("Failed; status: $other")
-        false
-    })
+  override def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[WSResponse] = {
+    ws.url(s"$url/$index/hadith").post(Json.toJson(hadith))
   }
 
   override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] =

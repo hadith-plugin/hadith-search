@@ -48,7 +48,12 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
         },
         valid = { hadith =>
           log.info(s"[add] validation passed")
-          elasticsearch.indexHadith(index, hadith).map(result => Ok("Success"))
+          elasticsearch.indexHadith(index, hadith).map(result => result.status match {
+            case 200 | 201 =>
+              Ok("Success")
+            case status =>
+              InternalServerError(s"Elasticsearch response: $result")
+          })
         })
      )
   }
