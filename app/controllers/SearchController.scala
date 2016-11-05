@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import javax.inject._
 
 import model.{Hadith, SearchRequest}
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
 import services.Elasticsearch
@@ -13,6 +14,8 @@ import scala.util.Try
 
 @Singleton
 class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(implicit exec: ExecutionContext) extends Controller {
+
+  val log = Logger(this.getClass)
 
   private[this] def getQueryAsInt[A](param: String)(implicit request: Request[A]): Option[Int] =
     Try(request.getQueryString(param).map(Integer.parseInt)).toOption.getOrElse(None)
@@ -39,10 +42,14 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
   def add(index: String) = Action.async { implicit request =>
      request.body.asJson.fold(Future.successful(BadRequest("Invalid payload format")))(json =>
       json.validate[Hadith].fold(
-        errors =>
-          Future.successful(BadRequest(s"Invalid Json, $errors")),
-        hadith =>
-          elasticsearch.indexHadith(index, hadith).map(result => Ok("Success")))
+        invalid = { errors =>
+          log.debug(s"[add] validation faild; errors: $errors")
+          Future.successful(BadRequest(s"Invalid Json, $errors"))
+        },
+        valid = { hadith =>
+          log.debug(s"[add] validation passed")
+          elasticsearch.indexHadith(index, hadith).map(result => Ok("Success"))
+        })
      )
   }
 }
