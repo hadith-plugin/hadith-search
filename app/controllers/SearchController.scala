@@ -39,7 +39,7 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
     elasticsearch.search("bokhari", query, offset, limit).map(result => Ok(Json.toJson(result)))
   }
 
-  def add(index: String) = Action.async { implicit request =>
+  def add(index: String, id: Option[String] = None) = Action.async { implicit request =>
      request.body.asJson.fold(Future.successful(BadRequest("Invalid payload format")))(json =>
       json.validate[Hadith].fold(
         invalid = { errors =>
@@ -48,7 +48,7 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
         },
         valid = { hadith =>
           log.info(s"[add] validation passed")
-          elasticsearch.indexHadith(index, hadith).map(result => result.status match {
+          elasticsearch.indexHadith(index, hadith, id).map(result => result.status match {
             case 200 | 201 =>
               Created("Success")
             case status =>

@@ -9,7 +9,7 @@ import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait Elasticsearch {
-  def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[WSResponse]
+  def indexHadith(index: String, hadith: Hadith, idOpt: Option[String] = None)(implicit ex: ExecutionContext): Future[WSResponse]
 
   def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]]
 
@@ -25,12 +25,11 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
   println(s"Elasticsearch URL: $url")
   println(s"user: $user, password: $password")
 
-  override def indexHadith(index: String, hadith: Hadith)(implicit ex: ExecutionContext): Future[WSResponse] = {
-    ws.url(s"$url/$index/hadith").withAuth(user, password, WSAuthScheme.BASIC).post(Json.toJson(hadith))
-  }
+  override def indexHadith(index: String, hadith: Hadith, idOpt: Option[String] = None)(implicit ex: ExecutionContext): Future[WSResponse] =
+    idOpt.fold(request(s"/$index/hadith").post(Json.toJson(hadith)))(id => request(s"/$index/hadith/$id").put(Json.toJson(hadith)))
 
   override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] =
-    ws.url(s"$url/$index/hadith/_search").withAuth(user, password, WSAuthScheme.BASIC).post(makeQuery(query)).map(res => res.json.validate[ElasticsearchResponse] match {
+    request(s"$url/$index/hadith/_search?size=$limit&from=$offset").post(makeQuery(query)).map(res => res.json.validate[ElasticsearchResponse] match {
       case JsSuccess(result, _) =>
         result.hits.hits.map { hit =>
           HadithResult(index, hit._score, hit._source)
@@ -44,6 +43,8 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
     })
 
   override def buildIndex(): Future[Boolean] = Future.successful(true)
+
+  private[this] def request(path: String) = ws.url(s"$url$path").withAuth(user, password, WSAuthScheme.BASIC)
 
   private[this] def makeQuery(query: String): JsObject = Json.obj(
     "query" -> Json.obj(
