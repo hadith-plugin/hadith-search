@@ -6,6 +6,9 @@
 GET     /                           controllers.HomeController.index
 
 GET     /search                     controllers.SearchController.search
+POST    /search                     controllers.SearchController.search
+
+POST    /add/:index                 controllers.SearchController.add(index)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
