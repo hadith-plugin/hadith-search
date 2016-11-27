@@ -28,19 +28,22 @@ class ElasticSearchWSC(ws: WSClient, conf: Config) extends Elasticsearch {
   override def indexHadith(index: String, hadith: Hadith, idOpt: Option[String] = None)(implicit ex: ExecutionContext): Future[WSResponse] =
     idOpt.fold(request(s"/$index/hadith").post(Json.toJson(hadith)))(id => request(s"/$index/hadith/$id").put(Json.toJson(hadith)))
 
-  override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] =
-    request(s"$url/$index/hadith/_search?size=$limit&from=$offset").post(makeQuery(query)).map(res => res.json.validate[ElasticsearchResponse] match {
+  override def search(index: String, query: String, offset: Int, limit: Int)(implicit ex: ExecutionContext): Future[Seq[HadithResult]] = {
+    val route = s"/$index/hadith/_search?size=$limit&from=$offset"
+    val searchRequest = request(route).post(makeQuery(query))
+    searchRequest.map(res => res.json.validate[ElasticsearchResponse] match {
       case JsSuccess(result, _) =>
-        result.hits.hits.map { hit =>
-          HadithResult(index, hit._score, hit._source)
-        }
+      result.hits.hits.map { hit =>
+        HadithResult(index, hit._score, hit._source)
+      }
       case JsError(errors) =>
-        println("--------------------------------")
-        println(res)
-        println(errors)
-        println("--------------------------------")
-        Seq.empty
+      println("--------------------------------")
+      println(res)
+      println(errors)
+      println("--------------------------------")
+      Seq.empty
     })
+  }
 
   override def buildIndex(): Future[Boolean] = Future.successful(true)
 
