@@ -81,3 +81,5 @@ object SearchRequest {
   implicit val fmt = Json.format[SearchRequest]
   val defaultInstance = SearchRequest(query = Some(""), offset = Some(0), limit = Some(10))
 }
+
+case class Counter(name: String, count: Int)
