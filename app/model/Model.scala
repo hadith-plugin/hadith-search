@@ -28,6 +28,7 @@ case class Hadith(
   content: String,
   noTashkeelContent: String,
   cid: String,
+  authenticity: Option[String],
   pos: Seq[String],
   book: SubContent,
   chapter: SubContent)
@@ -60,7 +61,7 @@ object ShortContent {
   implicit val fmt = Json.format[ShortContent]
 }
 
-case class HadithResult(index: String, score: Double, content: String, noTashkeelContent: String, book: ShortContent, chapter: ShortContent)
+case class HadithResult(index: String, score: Double, content: String, noTashkeelContent: String, authenticity: Option[String], book: ShortContent, chapter: ShortContent)
 
 object HadithResult {
   implicit val fmt = Json.format[HadithResult]
@@ -71,6 +72,7 @@ object HadithResult {
       score,
       hadith.content,
       hadith.noTashkeelContent,
+      hadith.authenticity,
       ShortContent(hadith.book.content, hadith.book.noTashkeelContent),
       ShortContent(hadith.chapter.content, hadith.chapter.noTashkeelContent))
 }

@@ -48,7 +48,13 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
         },
         valid = { hadith =>
           log.info(s"[add] validation passed")
-          elasticsearch.indexHadith(index, hadith, id).map(result => result.status match {
+
+          val elasticsearchResponse = if (index == "bo5ari" || index == "moslim") {
+            elasticsearch.indexHadith(index, hadith.copy(authenticity = Some("صحيح")), id)
+          } else {
+            elasticsearch.indexHadith(index, hadith, id)
+          }
+          elasticsearchResponse.map(result => result.status match {
             case 200 | 201 =>
               Created("Success")
             case status =>
