@@ -36,7 +36,7 @@ class SearchController(actorSystem: ActorSystem, elasticsearch: Elasticsearch)(i
     val query = searchRequest.query.getOrElse("")
     val limit = searchRequest.limit.getOrElse(10)
     val offset = searchRequest.offset.getOrElse(0)
-    elasticsearch.search("bokhari", query, offset, limit).map(result => Ok(Json.toJson(result)))
+    elasticsearch.search("_all", query, offset, limit).map(result => Ok(Json.toJson(result)))
   }
 
   def add(index: String, id: Option[String] = None) = Action.async { implicit request =>

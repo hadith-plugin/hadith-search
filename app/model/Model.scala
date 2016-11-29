@@ -42,7 +42,7 @@ object SearchResult {
   implicit val fmt = Json.format[SearchResult]
 }
 
-case class Hits(total: Int, max_score: Double, hits: Seq[SearchResult])
+case class Hits(total: Int, max_score: Option[Double], hits: Seq[SearchResult])
 
 object Hits {
   implicit val fmt = Json.format[Hits]
